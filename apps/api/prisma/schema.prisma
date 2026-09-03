@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Difficulty {
+  Easy
+  Medium
+  Hard
+}
+
+enum ProblemStatus {
+  Todo
+  Attempted
+  Solved
+  SolvedOptimal @map("Solved-Optimal")
+  NeedsRevisit  @map("Needs Revisit")
+}
+
+enum RoleLevel {
+  intern
+  fresher
+  sde1
+}
+
+enum SourcePlatform {
+  reddit
+  gfg
+  lc_discuss
+}
+
+model Pattern {
+  id                Int              @id @default(autoincrement())
+  name              String           @unique
+  description       String?
+  primaryProblems   Problem[]        @relation("PrimaryPattern")
+  secondaryProblems ProblemPattern[]
+  oaStories         OAStory[]        @relation("UnderlyingPattern")
+}
+
+model Problem {
+  id                   Int              @id @default(autoincrement())
+  title                String
+  lcNumber             Int?             @unique @map("lc_number")
+  lcUrl                String?          @map("lc_url")
+  difficulty           Difficulty?
+  topic                String?
+  sourceSheet          String?          @map("source_sheet")
+  primaryPatternId     Int              @map("primary_pattern_id")
+  primaryPattern       Pattern          @relation("PrimaryPattern", fields: [primaryPatternId], references: [id])
+  status               ProblemStatus    @default(Todo)
+  confidence           Int?
+  timesRevisited       Int              @default(0) @map("times_revisited")
+  dateFirstAttempted   DateTime?        @db.Date @map("date_first_attempted")
+  dateSolved           DateTime?        @db.Date @map("date_solved")
+  createdAt            DateTime         @default(now()) @map("created_at")
+  updatedAt            DateTime         @updatedAt @map("updated_at")
+  secondaryPatterns    ProblemPattern[]
+  solutions            Solution[]
+  revisionLogs         RevisionLog[]
+  closestForStories    OAStory[]        @relation("ClosestProblem")
+
+  @@index([primaryPatternId])
+  @@index([status])
+}
+
+model ProblemPattern {
+  problemId Int     @map("problem_id")
+  patternId Int     @map("pattern_id")
+  problem   Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  pattern   Pattern @relation(fields: [patternId], references: [id], onDelete: Cascade)
+
+  @@id([problemId, patternId])
+}
+
+model Solution {
+  id             Int      @id @default(autoincrement())
+  problemId      Int      @map("problem_id")
+  language       String
+  code           String
+  timeComplexity String?  @map("time_complexity")
+  spaceComplexity String? @map("space_complexity")
+  notes          String?
+  createdAt      DateTime @default(now()) @map("created_at")
+  problem        Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+}
+
+model RevisionLog {
+  id                 Int      @id @default(autoincrement())
+  problemId          Int      @map("problem_id")
+  reviewedAt         DateTime @default(now()) @map("reviewed_at")
+  confidenceAtReview Int?     @map("confidence_at_review")
+  nextReviewDue      DateTime? @db.Date @map("next_review_due")
+  problem            Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+}
+
+model OAStory {
+  id                  Int            @id @default(autoincrement())
+  company             String?
+  roleLevel           RoleLevel?     @map("role_level")
+  sourceLink          String?        @map("source_link")
+  sourcePlatform      SourcePlatform? @map("source_platform")
+  storySummary        String         @map("story_summary")
+  underlyingPatternId Int?           @map("underlying_pattern_id")
+  closestLcProblemId  Int?           @map("closest_lc_problem_id")
+  myApproach          String?        @map("my_approach")
+  dateAdded           DateTime       @default(now()) @map("date_added")
+  underlyingPattern   Pattern?       @relation("UnderlyingPattern", fields: [underlyingPatternId], references: [id])
+  closestLcProblem    Problem?       @relation("ClosestProblem", fields: [closestLcProblemId], references: [id])
+}
+
+model IngestionStaging {
+  id             Int            @id @default(autoincrement())
+  sourcePlatform SourcePlatform @map("source_platform")
+  sourceLink     String         @unique @map("source_link")
+  rawTitle       String?        @map("raw_title")
+  rawExcerpt     String?        @db.VarChar(500) @map("raw_excerpt")
+  fetchedAt      DateTime       @default(now()) @map("fetched_at")
+  reviewed       Boolean        @default(false)
+}
