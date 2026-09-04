@@ -1,6 +1,5 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { ScheduleModule } from "@nestjs/schedule";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { AppController } from "./app.controller.js";
@@ -22,7 +21,6 @@ const rootEnvFile = resolve(appDirectory, "../../..", ".env");
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: rootEnvFile }),
-    ScheduleModule.forRoot(),
     PrismaModule,
     RedisModule,
     AuthModule,

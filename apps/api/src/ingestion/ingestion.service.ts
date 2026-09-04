@@ -38,7 +38,7 @@ export class IngestionService {
       await tx.ingestionStaging.update({ where: { id: stagingId }, data: { reviewed: true } });
       await tx.ingestionStaging.delete({ where: { id: stagingId } });
       return created;
-    });
+    }, { timeout: 15_000, maxWait: 5_000 });
     return story;
   }
 
