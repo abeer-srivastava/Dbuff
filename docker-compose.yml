@@ -8,5 +8,12 @@ services:
       - redis-data:/data
     restart: unless-stopped
 
+  leetcode-api:
+    image: alfaarghya/alfa-leetcode-api:2.0.4
+    container_name: dbuff-leetcode-api
+    ports:
+      - "${LEETCODE_API_PORT:-3005}:3000"
+    restart: unless-stopped
+
 volumes:
   redis-data:

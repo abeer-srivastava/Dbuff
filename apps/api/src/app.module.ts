@@ -7,6 +7,7 @@ import { AuthModule } from "./auth/auth.module.js";
 import { DashboardModule } from "./dashboard/dashboard.module.js";
 import { ExportModule } from "./export/export.module.js";
 import { IngestionModule } from "./ingestion/ingestion.module.js";
+import { LeetcodeModule } from "./leetcode/leetcode.module.js";
 import { OaStoriesModule } from "./oa-stories/oa-stories.module.js";
 import { PatternsModule } from "./patterns/patterns.module.js";
 import { PrismaModule } from "./prisma/prisma.module.js";
@@ -31,6 +32,7 @@ const rootEnvFile = resolve(appDirectory, "../../..", ".env");
     RevisionModule,
     OaStoriesModule,
     IngestionModule,
+    LeetcodeModule,
   ],
   controllers: [AppController],
 })

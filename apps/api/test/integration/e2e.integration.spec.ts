@@ -178,4 +178,35 @@ describe("API e2e integration", () => {
     expect(res.body).toHaveProperty("oaStories");
     expect(res.body).toHaveProperty("exportedAt");
   });
+
+  if (process.env.LEETCODE_API_URL) {
+    describe("LeetCode integration (requires leetcode-api container)", () => {
+      const USER = encodeURIComponent("alfaarghya");
+
+      it("GET /leetcode/daily returns the daily problem", async () => {
+        const res = await authed().get("/leetcode/daily").expect(200);
+        expect(res.body).toHaveProperty("question");
+      });
+
+      it("GET /leetcode/discussions/trending returns discussions", async () => {
+        const res = await authed().get("/leetcode/discussions/trending?first=3").expect(200);
+        expect(Array.isArray(res.body.cachedTrendingCategoryTopics)).toBe(true);
+        expect(res.body.cachedTrendingCategoryTopics.length).toBe(3);
+      });
+
+      it("GET /leetcode/user/:username returns solve stats", async () => {
+        const res = await authed().get(`/leetcode/user/${USER}`).expect(200);
+        expect(typeof res.body.totalSolved).toBe("number");
+      });
+
+      it("GET /leetcode/user/:username/solved returns solve counts", async () => {
+        const res = await authed().get(`/leetcode/user/${USER}/solved`).expect(200);
+        expect(res.body).toHaveProperty("solvedProblem");
+      });
+
+      it("maps an unknown user to 404", async () => {
+        await authed().get("/leetcode/user/definitely-not-a-real-leetcode-user-xyz123").expect(404);
+      });
+    });
+  }
 });
